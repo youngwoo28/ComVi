@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goal Line Detection</title>
+</head>
+<body>
+    <h1>Goal Line Detection</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="imageInput" name="image" accept="image/*" required />
+        <button type="submit">Upload</button>
+    </form>
+    <h2>Detection Result</h2>
+    <img id="resultImage" alt="Detection result will appear here" style="max-width: 100%; max-height: 400px;" />
+
+    <script>
+        // 폼 제출 이벤트 핸들러
+        const form = document.getElementById('uploadForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); // 기본 제출 동작 방지
+
+            const formData = new FormData();
+            const imageInput = document.getElementById('imageInput');
+            formData.append('image', imageInput.files[0]); // 업로드된 파일 추가
+
+            try {
+                // 서버에 POST 요청 보내기
+                const response = await fetch('http://127.0.0.1:5000/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                // 응답 상태 코드와 데이터 출력
+                console.log("응답 상태 코드:", response.status);
+                const data = await response.json(); // JSON 응답 파싱
+                console.log("응답 데이터:", data);
+
+                // 응답 데이터 처리
+                if (response.ok && data.image) {
+                    const resultImage = document.getElementById('resultImage');
+                    resultImage.src = `data:image/jpeg;base64,${data.image}`;
+                } else {
+                    console.error("예측 실패:", data.error || "Unknown error");
+                    alert("Prediction failed!");
+                }
+            } catch (error) {
+                console.error("요청 처리 중 오류:", error);
+                alert("Something went wrong!");
+            }
+        });
+    </script>
+</body>
+</html>
